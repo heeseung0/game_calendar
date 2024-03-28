@@ -161,24 +161,29 @@ class _HomeScreenState extends State<HomeScreen> {
 
     Widget addContent() {
       bool toggle = false;
-      Icon icon = Icon(Icons.check);
+      Icon icon = const Icon(Icons.check_box_outline_blank);
       return Container(
         color: secondaryColor,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('동물잡기 ${bodyScreen.length}'),
-            IconButton(
-              icon: icon == Icon(Icons.check)
-                  ? Icon(Icons.check_box_outline_blank)
-                  : Icon(Icons.check),
-              onPressed: () {
-                setState(() {
-                  toggle = !toggle;
-                  print(toggle);
-                });
+            StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                return IconButton(
+                  onPressed: () {
+                    setState(() {
+                      toggle = !toggle;
+                      toggle
+                          ? icon = const Icon(Icons.check)
+                          : icon = const Icon(Icons.check_box_outline_blank);
+                    });
+                  },
+                  icon: icon,
+                  iconSize: 35,
+                );
               },
-            )
+            ),
           ],
         ),
       );
