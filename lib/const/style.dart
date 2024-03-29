@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
-TextStyle textStyle(double size, [Color? color]) {
+TextStyle textStyle(double size, [Color? color, FontWeight? weight]) {
   return TextStyle(
     color: color ?? Colors.white,
     fontSize: size,
-    fontWeight: FontWeight.w900,
+    fontWeight: weight ?? FontWeight.normal,
+    decoration: TextDecoration.none,
   );
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:game_calendar/const/colors.dart';
+import 'package:game_calendar/const/dummy.dart';
 import 'package:game_calendar/const/enum.dart';
 import 'package:game_calendar/const/style.dart';
 import 'package:game_calendar/func/quests.dart';
@@ -18,8 +19,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    bodyScreen = renderListView();
+    renderListView();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -54,14 +60,14 @@ class _HomeScreenState extends State<HomeScreen> {
                           type = Types.week.index;
                         }
 
-                        bodyScreen = renderListView();
+                        renderListView();
                       });
                     },
                     child: Column(
                       children: [
                         Text(
                           '게임 선택',
-                          style: textStyle(20, Colors.black),
+                          style: textStyle(20, Colors.black, FontWeight.bold),
                         ),
                         Text(
                           GameNames.values[game].convert,
@@ -75,9 +81,42 @@ class _HomeScreenState extends State<HomeScreen> {
               // 중앙 메인
               Expanded(
                 flex: 75,
-                child: ListView.builder(
-                  itemBuilder: (context, index) => bodyScreen[index],
-                  itemCount: bodyScreen.length,
+                child: Column(
+                  children: [
+                    Expanded(
+                      flex: 5,
+                      child: Row(
+                        children: [
+                          Expanded(flex: 1, child: SizedBox()),
+                          Expanded(
+                            flex: 3,
+                            child: Text('구분',
+                                style: textStyle(
+                                    22, Colors.black, FontWeight.bold)),
+                          ),
+                          Expanded(
+                            flex: 3,
+                            child: Text('상세',
+                                style: textStyle(
+                                    22, Colors.black, FontWeight.bold)),
+                          ),
+                          Expanded(
+                            flex: 2,
+                            child: Text('체크',
+                                style: textStyle(
+                                    22, Colors.black, FontWeight.bold)),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      flex: 95,
+                      child: ListView.builder(
+                        itemBuilder: (context, index) => bodyScreen[index],
+                        itemCount: bodyScreen.length,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               // 하단
@@ -115,29 +154,33 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  List<Widget> renderListView() {
+  void renderListView() {
     switch (game) {
       case 0:
-        print(getQuests(game, type));
-        return loadMinecraft();
+        loadMinecraft();
+        break;
       case 1:
-        print(getQuests(game, type));
-        return loadLostArk();
+        loadLostArk();
+        break;
       default:
-        return loadMinecraft();
+        loadMinecraft();
+        break;
     }
   }
 
-  List<Widget> loadMinecraft([List<Widget>? list]) {
+  void loadMinecraft([List<Widget>? list]) {
     List<Widget> result = List<Widget>.empty(growable: true);
 
     list?.forEach((widget) {
       result.add(widget);
     });
 
-    Widget addContent([String? quest, String? cnt]) {
-      bool toggle = false;
-      Icon icon = const Icon(Icons.check_box_outline_blank);
+    Widget addContent([String? quest, String? cnt, bool? toggle]) {
+      bool toggle_ = toggle ?? false;
+      Icon icon = toggle_
+          ? const Icon(Icons.check)
+          : const Icon(Icons.check_box_outline_blank);
+
       return Container(
         color: secondaryColor,
         child: Row(
@@ -145,16 +188,30 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Expanded(
               flex: 4,
-              child: Text(
-                quest ?? '퀘스트 목록 ${bodyScreen.length}',
-                style: textStyle(20, Colors.black),
+              child: TextButton(
+                child: TextFormField(
+                  initialValue: quest ?? '퀘스트 목록 ${bodyScreen.length}',
+                  style: textStyle(20, Colors.black),
+                  decoration: const InputDecoration.collapsed(
+                    hintText: "",
+                    border: InputBorder.none,
+                  ),
+                ),
+                onPressed: () {},
               ),
             ),
             Expanded(
               flex: 4,
-              child: Text(
-                cnt ?? 'a ${bodyScreen.length * 2}',
-                style: textStyle(25, Colors.blue),
+              child: TextButton(
+                child: TextFormField(
+                  initialValue: cnt ?? 'a ${bodyScreen.length * 2}',
+                  style: textStyle(25, Colors.blue),
+                  decoration: const InputDecoration.collapsed(
+                    hintText: "",
+                    border: InputBorder.none,
+                  ),
+                ),
+                onPressed: () {},
               ),
             ),
             Expanded(
@@ -164,10 +221,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   return IconButton(
                     onPressed: () {
                       setState(() {
-                        toggle = !toggle;
-                        toggle
+                        toggle_ = !toggle_;
+                        toggle_
                             ? icon = const Icon(Icons.check)
                             : icon = const Icon(Icons.check_box_outline_blank);
+
+                        Storage(game).writeData(dataDummy1);
+
+                        bodyScreen.forEach((element) {
+                          print("하;;");
+                        });
                       });
                     },
                     icon: icon,
@@ -180,13 +243,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
     }
-
-    //퀘스트 목록 자동 등록
-    Map quests = getQuests(game, type);
-
-    quests.forEach((key, value) {
-      result.add(addContent(value[0], value[1]));
-    });
 
     result.add(
       Container(
@@ -205,10 +261,19 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
 
-    return result;
+    bodyScreen = result;
+
+    //퀘스트 목록 자동 등록 (파일 입출력)
+    getQuests(game, type).then((quests) {
+      quests.forEach((key, value) {
+        result.insert(
+            bodyScreen.length - 1, addContent(value[0], value[1], value[2]));
+      });
+      setState(() {});
+    });
   }
 
-  List<Widget> loadLostArk() {
-    return List<Widget>.empty(growable: true);
+  void loadLostArk() {
+    bodyScreen = List<Widget>.empty(growable: true);
   }
 }
