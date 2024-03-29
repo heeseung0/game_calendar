@@ -1,42 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:game_calendar/const/colors.dart';
+import 'package:game_calendar/const/enum.dart';
 import 'package:game_calendar/const/style.dart';
+import 'package:game_calendar/func/quests.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
-}
-
-enum GameNames<int> { minecraft, lostark }
-
-enum Types<int> { day, week }
-
-extension GameNamesExtension on GameNames {
-  String get convert {
-    switch (this) {
-      case GameNames.minecraft:
-        return '마인크래프트';
-      case GameNames.lostark:
-        return '로스트아크';
-      default:
-        return '마인크래프트';
-    }
-  }
-}
-
-extension TypesExtension on Types {
-  String get convert {
-    switch (this) {
-      case Types.day:
-        return '일일';
-      case Types.week:
-        return '주간';
-      default:
-        return '일일';
-    }
-  }
 }
 
 class _HomeScreenState extends State<HomeScreen> {
@@ -81,6 +53,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             GameNames.lostark) {
                           type = Types.week.index;
                         }
+
+                        bodyScreen = renderListView();
                       });
                     },
                     child: Column(
@@ -144,8 +118,10 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Widget> renderListView() {
     switch (game) {
       case 0:
+        print(getQuests(game, type));
         return loadMinecraft();
       case 1:
+        print(getQuests(game, type));
         return loadLostArk();
       default:
         return loadMinecraft();
@@ -159,7 +135,7 @@ class _HomeScreenState extends State<HomeScreen> {
       result.add(widget);
     });
 
-    Widget addContent() {
+    Widget addContent([String? quest, String? cnt]) {
       bool toggle = false;
       Icon icon = const Icon(Icons.check_box_outline_blank);
       return Container(
@@ -167,27 +143,50 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('동물잡기 ${bodyScreen.length}'),
-            StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-                return IconButton(
-                  onPressed: () {
-                    setState(() {
-                      toggle = !toggle;
-                      toggle
-                          ? icon = const Icon(Icons.check)
-                          : icon = const Icon(Icons.check_box_outline_blank);
-                    });
-                  },
-                  icon: icon,
-                  iconSize: 35,
-                );
-              },
+            Expanded(
+              flex: 4,
+              child: Text(
+                quest ?? '퀘스트 목록 ${bodyScreen.length}',
+                style: textStyle(20, Colors.black),
+              ),
+            ),
+            Expanded(
+              flex: 4,
+              child: Text(
+                cnt ?? 'a ${bodyScreen.length * 2}',
+                style: textStyle(25, Colors.blue),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: StatefulBuilder(
+                builder: (BuildContext context, StateSetter setState) {
+                  return IconButton(
+                    onPressed: () {
+                      setState(() {
+                        toggle = !toggle;
+                        toggle
+                            ? icon = const Icon(Icons.check)
+                            : icon = const Icon(Icons.check_box_outline_blank);
+                      });
+                    },
+                    icon: icon,
+                    iconSize: 35,
+                  );
+                },
+              ),
             ),
           ],
         ),
       );
     }
+
+    //퀘스트 목록 자동 등록
+    Map quests = getQuests(game, type);
+
+    quests.forEach((key, value) {
+      result.add(addContent(value[0], value[1]));
+    });
 
     result.add(
       Container(
