@@ -181,6 +181,19 @@ class _HomeScreenState extends State<HomeScreen> {
           ? const Icon(Icons.check)
           : const Icon(Icons.check_box_outline_blank);
 
+      TextEditingController ctr1 =
+          TextEditingController(text: quest ?? '퀘스트 목록 ${bodyScreen.length}');
+      TextEditingController ctr2 =
+          TextEditingController(text: cnt ?? 'a ${bodyScreen.length * 2}');
+      Map<String, dynamic> dto = {
+        'ctr1': ctr1.text,
+        'ctr2': ctr2.text,
+        'toggle': toggle_,
+        'ctr1_': ctr1.text,
+        'ctr2_': ctr2.text,
+        'toggle_': toggle_,
+      };
+
       return Container(
         color: secondaryColor,
         child: Row(
@@ -190,12 +203,19 @@ class _HomeScreenState extends State<HomeScreen> {
               flex: 4,
               child: TextButton(
                 child: TextFormField(
-                  initialValue: quest ?? '퀘스트 목록 ${bodyScreen.length}',
+                  //initialValue: quest ?? '퀘스트 목록 ${bodyScreen.length}',
+                  controller: ctr1,
                   style: textStyle(20, Colors.black),
                   decoration: const InputDecoration.collapsed(
                     hintText: "",
                     border: InputBorder.none,
                   ),
+                  onChanged: (value) {
+                    dto['ctr1'] = value;
+                  },
+                  onTap: () {
+                    dto['ctr1_'] = ctr1.text;
+                  },
                 ),
                 onPressed: () {},
               ),
@@ -204,12 +224,19 @@ class _HomeScreenState extends State<HomeScreen> {
               flex: 4,
               child: TextButton(
                 child: TextFormField(
-                  initialValue: cnt ?? 'a ${bodyScreen.length * 2}',
+                  //initialValue: cnt ?? 'a ${bodyScreen.length * 2}',
+                  controller: ctr2,
                   style: textStyle(25, Colors.blue),
                   decoration: const InputDecoration.collapsed(
                     hintText: "",
                     border: InputBorder.none,
                   ),
+                  onChanged: (value) {
+                    dto['ctr2'] = value;
+                  },
+                  onTap: () {
+                    dto['ctr2_'] = ctr2.text;
+                  },
                 ),
                 onPressed: () {},
               ),
@@ -221,16 +248,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   return IconButton(
                     onPressed: () {
                       setState(() {
+                        dto['toggle_'] = toggle_;
                         toggle_ = !toggle_;
                         toggle_
                             ? icon = const Icon(Icons.check)
                             : icon = const Icon(Icons.check_box_outline_blank);
+                        dto['toggle'] = toggle_;
 
-                        Storage(game).writeData(dataDummy1);
+                        //Storage(game).writeData(dataDummy1);
 
-                        bodyScreen.forEach((element) {
-                          print("하;;");
-                        });
+                        Storage(game).saveData(dto);
                       });
                     },
                     icon: icon,
@@ -269,6 +296,7 @@ class _HomeScreenState extends State<HomeScreen> {
         result.insert(
             bodyScreen.length - 1, addContent(value[0], value[1], value[2]));
       });
+      print(quests);
       setState(() {});
     });
   }
